@@ -1,0 +1,22 @@
+services:
+  ollama:
+    image: ollama/ollama:latest
+    container_name: st-youngwon-ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    restart: unless-stopped
+    mem_limit: 4g
+    cpus: 4.0
+
+  app:
+    depends_on:
+      - ollama
+    environment:
+      - LLM_PROVIDER=ollama
+      - OLLAMA_BASE_URL=http://ollama:11434
+
+volumes:
+  ollama_data:
+    driver: local

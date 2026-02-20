@@ -1,0 +1,29 @@
+services:
+  app:
+    build:
+      context: .
+      target: production
+    container_name: st-youngwon-chatbot
+    ports:
+      - "8080:8000"
+    volumes:
+      - chatbot_data:/app/data
+    environment:
+      - LLM_PROVIDER=${LLM_PROVIDER:-openai}
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-}
+      - GEMINI_MODEL=${GEMINI_MODEL:-gemini-2.0-flash}
+      - EMBEDDING_PROVIDER=${EMBEDDING_PROVIDER:-openai}
+      - EMBEDDING_MODEL=${EMBEDDING_MODEL:-text-embedding-3-small}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD:-admin1234}
+      - SECRET_KEY=${SECRET_KEY:-change-this-secret-key}
+      - OLLAMA_BASE_URL=${OLLAMA_BASE_URL:-http://ollama:11434}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+    restart: unless-stopped
+    mem_limit: 1g
+    cpus: 2.0
+
+volumes:
+  chatbot_data:
+    driver: local

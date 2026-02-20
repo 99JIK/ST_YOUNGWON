@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ollama:*)",
+      "Bash(curl:*)",
+      "Bash(netstat:*)",
+      "Bash(ping:*)",
+      "Bash(powershell:*)",
+      "Bash(wmic process where \"ProcessId=44704 or ProcessId=24800\" get ProcessId,Name,CommandLine)",
+      "Bash(cd:*)",
+      "Bash(uvicorn:*)"
+    ]
+  }
+}

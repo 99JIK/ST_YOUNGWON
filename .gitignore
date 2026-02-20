@@ -1,0 +1,49 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+dist/
+build/
+*.egg
+.venv/
+venv/
+env/
+
+# Environment
+.env
+.env.local
+.env.production
+
+# Data (persistent volumes)
+data/documents/*
+data/extracted/*
+data/chromadb/*
+data/nas_paths/path_index.json
+!data/documents/.gitkeep
+!data/extracted/.gitkeep
+!data/chromadb/.gitkeep
+!data/nas_paths/.gitkeep
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Docker
+docker-compose.override.yml
+
+# Tests
+.coverage
+htmlcov/
+.pytest_cache/
+TEST_DIRECTORY/

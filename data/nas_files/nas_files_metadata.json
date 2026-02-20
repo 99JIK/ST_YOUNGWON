@@ -1,0 +1,76 @@
+{
+  "fd981182": {
+    "id": "fd981182",
+    "filename": "DepartmentAnalyzer.java",
+    "uploaded_at": "2026-02-20T15:42:27.302958",
+    "total_chunks": 1,
+    "status": "indexed",
+    "file_size": 332,
+    "category": ""
+  },
+  "2e379ec0": {
+    "id": "2e379ec0",
+    "filename": "Employee.java",
+    "uploaded_at": "2026-02-20T15:42:29.464589",
+    "total_chunks": 1,
+    "status": "indexed",
+    "file_size": 635,
+    "category": ""
+  },
+  "e35e05b2": {
+    "id": "e35e05b2",
+    "filename": "EmployeeFilter.java",
+    "uploaded_at": "2026-02-20T15:42:31.598423",
+    "total_chunks": 1,
+    "status": "indexed",
+    "file_size": 595,
+    "category": ""
+  },
+  "e06bf55a": {
+    "id": "e06bf55a",
+    "filename": "EvenSquareSum.java",
+    "uploaded_at": "2026-02-20T15:42:33.734077",
+    "total_chunks": 1,
+    "status": "indexed",
+    "file_size": 276,
+    "category": ""
+  },
+  "08487516": {
+    "id": "08487516",
+    "filename": "StreamStats.java",
+    "uploaded_at": "2026-02-20T15:42:35.875596",
+    "total_chunks": 1,
+    "status": "indexed",
+    "file_size": 533,
+    "category": ""
+  },
+  "ce9d3099": {
+    "id": "ce9d3099",
+    "filename": "StringProcessor.java",
+    "uploaded_at": "2026-02-20T15:42:38.012033",
+    "total_chunks": 1,
+    "status": "indexed",
+    "file_size": 428,
+    "category": ""
+  },
+  "f88d9cb5": {
+    "id": "f88d9cb5",
+    "filename": "테스트.txt",
+    "relative_path": "/테스트.txt",
+    "uploaded_at": "2026-02-20T15:50:35.024328",
+    "total_chunks": 1,
+    "status": "indexed",
+    "file_size": 37,
+    "category": ""
+  },
+  "a1a12c71": {
+    "id": "a1a12c71",
+    "filename": "하위파일.txt",
+    "relative_path": "/테스트폴더/하위파일.txt",
+    "uploaded_at": "2026-02-20T15:50:37.116615",
+    "total_chunks": 1,
+    "status": "indexed",
+    "file_size": 34,
+    "category": ""
+  }
+}

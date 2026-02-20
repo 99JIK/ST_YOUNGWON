@@ -1,0 +1,177 @@
+{% extends "base.html" %}
+
+{% block nav_admin_active %}active{% endblock %}
+
+{% block content %}
+<!-- 관리자 패널 -->
+<div class="admin-container" id="adminPanel">
+
+    <!-- 시스템 상태 -->
+    <div class="admin-section">
+        <h2>시스템 상태</h2>
+        <div class="status-grid">
+            <div class="status-card">
+                <div class="status-value" id="docCount">-</div>
+                <div class="status-label">등록 문서</div>
+            </div>
+            <div class="status-card">
+                <div class="status-value" id="chunkCount">-</div>
+                <div class="status-label">총 청크 수</div>
+            </div>
+            <div class="status-card">
+                <div class="status-value" id="llmProvider">-</div>
+                <div class="status-label">LLM 프로바이더</div>
+            </div>
+            <div class="status-card">
+                <div class="status-value" id="nasPathCount">-</div>
+                <div class="status-label">NAS 경로</div>
+            </div>
+            <div class="status-card">
+                <div class="status-value" id="nasFileCount">-</div>
+                <div class="status-label">NAS 파일</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 문서 업로드 -->
+    <div class="admin-section">
+        <h2>문서 업로드</h2>
+        <div id="uploadAlert" style="display:none;"></div>
+        <div class="upload-area" id="uploadArea"
+             onclick="document.getElementById('fileInput').click()"
+             ondragover="event.preventDefault(); this.classList.add('dragover')"
+             ondragleave="this.classList.remove('dragover')"
+             ondrop="handleDrop(event)">
+            <div class="upload-icon">DOC</div>
+            <p>문서 파일을 드래그하거나 클릭하여 업로드</p>
+            <p style="font-size:12px; color: var(--text-secondary)">PDF, DOCX, XLSX, PPTX, TXT, MD, CSV 등 (최대 {{ max_upload_size_mb }}MB)</p>
+        </div>
+        <input type="file" id="fileInput" accept=".pdf,.docx,.xlsx,.pptx,.hwpx,.txt,.md,.csv,.json,.xml,.html,.log,.yaml,.yml" style="display:none" onchange="handleFileSelect(event)" multiple>
+        <div id="uploadProgress" style="display:none; margin-top:16px;">
+            <div class="progress-bar-wrap">
+                <div class="progress-bar" id="uploadProgressBar" style="width:0%"></div>
+            </div>
+            <p id="uploadProgressText" style="margin-top:8px; font-size:13px; text-align:center; color:var(--text-secondary);">준비 중...</p>
+        </div>
+    </div>
+
+    <!-- 문서 목록 -->
+    <div class="admin-section">
+        <h2>등록된 문서</h2>
+        <div id="docList">
+            <div class="empty-state">문서를 불러오는 중...</div>
+        </div>
+    </div>
+
+    <!-- 파일 동기화 -->
+    <div class="admin-section">
+        <h2>파일 동기화</h2>
+        <p style="font-size:13px; color:var(--text-secondary); margin-bottom:12px;">
+            파일 관리 페이지 또는 NAS에 직접 추가/삭제된 파일을 스캔하여 벡터DB 인덱스를 동기화합니다.
+        </p>
+        <div id="syncAlert" style="display:none;"></div>
+        <div style="display:flex; gap:8px; align-items:center;">
+            <button class="btn btn-primary" id="syncBtn" onclick="syncFiles()">동기화 실행</button>
+            <span id="syncStatus" style="font-size:13px; color:var(--text-secondary);"></span>
+        </div>
+    </div>
+
+    <!-- 사용자 관리 -->
+    <div class="admin-section">
+        <h2>사용자 관리</h2>
+        <div style="display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap;">
+            <button class="btn btn-primary btn-sm" onclick="showModal('createUserModal')">사용자 추가</button>
+        </div>
+        <div id="userList">
+            <div class="empty-state">사용자 목록을 불러오는 중...</div>
+        </div>
+    </div>
+
+    <!-- NAS 경로 관리 -->
+    <div class="admin-section">
+        <h2>NAS 파일 경로 관리</h2>
+        <div class="nas-form" id="nasForm">
+            <div class="form-group">
+                <label>파일명</label>
+                <input type="text" id="nasName" class="form-input" placeholder="예: 취업규칙">
+            </div>
+            <div class="form-group">
+                <label>NAS 경로</label>
+                <input type="text" id="nasPath" class="form-input" placeholder="예: \\NAS_SERVER\공유폴더\인사팀\규정\취업규칙.pdf">
+            </div>
+            <div class="form-group">
+                <label>분류</label>
+                <input type="text" id="nasCategory" class="form-input" placeholder="예: 인사규정">
+            </div>
+            <div class="form-group">
+                <label>설명</label>
+                <input type="text" id="nasDescription" class="form-input" placeholder="예: 에스티영원 취업규칙 최신본">
+            </div>
+            <div class="form-group">
+                <label>태그 (쉼표 구분)</label>
+                <input type="text" id="nasTags" class="form-input" placeholder="예: 취업규칙, 인사, 고용">
+            </div>
+            <div class="form-group" style="display:flex; align-items:flex-end;">
+                <button class="btn btn-primary" onclick="addNasPath()">경로 추가</button>
+            </div>
+        </div>
+        <div class="nas-path-list" id="nasPathList">
+            <div class="empty-state">NAS 경로를 불러오는 중...</div>
+        </div>
+    </div>
+</div>
+
+<!-- 사용자 추가 모달 -->
+<div class="modal-overlay" id="createUserModal" style="display:none;" onclick="if(event.target===this) closeModal('createUserModal')">
+    <div class="modal-content">
+        <h3>사용자 추가</h3>
+        <div class="form-group">
+            <label class="form-label">아이디</label>
+            <input type="text" id="newUsername" class="form-input" placeholder="영문 아이디">
+        </div>
+        <div class="form-group">
+            <label class="form-label">이름</label>
+            <input type="text" id="newDisplayName" class="form-input" placeholder="표시 이름">
+        </div>
+        <div class="form-group">
+            <label class="form-label">비밀번호</label>
+            <input type="password" id="newPassword" class="form-input" placeholder="초기 비밀번호">
+        </div>
+        <div class="form-group">
+            <label class="form-label">역할</label>
+            <select id="newRole" class="form-input">
+                <option value="user">일반 사용자</option>
+                <option value="admin">관리자</option>
+            </select>
+        </div>
+        <div class="modal-actions">
+            <button class="btn btn-secondary btn-sm" onclick="closeModal('createUserModal')">취소</button>
+            <button class="btn btn-primary btn-sm" onclick="createUser()">추가</button>
+        </div>
+    </div>
+</div>
+
+<!-- 비밀번호 재설정 모달 -->
+<div class="modal-overlay" id="resetPasswordModal" style="display:none;" onclick="if(event.target===this) closeModal('resetPasswordModal')">
+    <div class="modal-content">
+        <h3>비밀번호 재설정</h3>
+        <p style="color:var(--text-secondary); font-size:13px; margin-bottom:12px;">
+            <strong id="resetTargetName"></strong>의 비밀번호를 변경합니다.
+        </p>
+        <input type="hidden" id="resetTargetId">
+        <div class="form-group">
+            <label class="form-label">새 비밀번호</label>
+            <input type="password" id="resetNewPassword" class="form-input" placeholder="새 비밀번호 입력">
+        </div>
+        <div class="modal-actions">
+            <button class="btn btn-secondary btn-sm" onclick="closeModal('resetPasswordModal')">취소</button>
+            <button class="btn btn-primary btn-sm" onclick="confirmResetPassword()">변경</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>window.MAX_UPLOAD_SIZE_MB = {{ max_upload_size_mb }};</script>
+<script src="/static/js/admin.js?v={{ app_version }}"></script>
+{% endblock %}
