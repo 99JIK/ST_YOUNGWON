@@ -12,7 +12,7 @@ from fastapi.templating import Jinja2Templates
 from backend.app.api.router import api_router
 from backend.app.config import settings
 from backend.app.database import init_db
-from backend.app.dependencies import create_token, get_user_service
+from backend.app.dependencies import create_token, get_nas_index_service, get_user_service
 
 logger = logging.getLogger(__name__)
 
@@ -41,15 +41,19 @@ async def lifespan(app: FastAPI):
         settings.documents_dir,
         settings.extracted_dir,
         settings.chromadb_dir,
-        settings.nas_files_dir,
-        settings.nas_paths_file.parent,
-        settings.data_dir / "files",
+        settings.base_dirs_file.parent,
     ]:
         dir_path.mkdir(parents=True, exist_ok=True)
+
+    # NAS 파일 인덱스 주기적 스캔 시작 (1시간 간격)
+    nas_index = get_nas_index_service()
+    nas_index.start_periodic_scan(interval_seconds=3600)
+    logger.info("NAS 파일 인덱스 백그라운드 스캔 시작")
 
     yield
 
     # Shutdown
+    nas_index.stop_periodic_scan()
     logger.info("ST영원 스마트 오피스 종료")
 
 
@@ -82,13 +86,13 @@ async def chat_page(request: Request):
     return templates.TemplateResponse("chat.html", {"request": request})
 
 
-@app.get("/files", response_class=HTMLResponse)
-async def files_page(request: Request):
+@app.get("/nas", response_class=HTMLResponse)
+async def nas_page(request: Request):
     return templates.TemplateResponse(
-        "files.html",
+        "nas.html",
         {
             "request": request,
-            "max_upload_size_mb": settings.max_upload_size_mb,
+            "app_version": settings.app_version,
         },
     )
 

@@ -13,8 +13,6 @@ logger = logging.getLogger(__name__)
 
 # ChromaDB 컬렉션 이름
 REGULATIONS_COLLECTION = "st_youngwon_regulations"
-NAS_PATHS_COLLECTION = "nas_file_paths"
-NAS_FILES_COLLECTION = "nas_files"
 
 
 class VectorStore:

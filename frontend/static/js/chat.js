@@ -14,11 +14,14 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 function autoResize(el) {
-    el.style.height = 'auto';
+    el.style.height = '0';
     el.style.height = Math.min(el.scrollHeight, 120) + 'px';
 }
 
 function handleKeyDown(e) {
+    // 한글 IME 조합 중에는 Enter를 무시 (조합 완료용)
+    if (e.isComposing || e.keyCode === 229) return;
+
     if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();
         sendMessage();
@@ -125,7 +128,7 @@ async function sendMessage() {
     // 사용자 메시지 표시
     appendMessage('user', message);
     chatInput.value = '';
-    chatInput.style.height = 'auto';
+    chatInput.style.height = '';
 
     // 히스토리에 사용자 메시지 추가
     conversationHistory.push({ role: 'user', content: message });

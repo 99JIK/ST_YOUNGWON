@@ -7,16 +7,16 @@ from backend.app.config import settings
 from backend.app.core.vectorstore import VectorStore
 from backend.app.services.chat_service import ChatService
 from backend.app.services.document_service import DocumentService
-from backend.app.services.filesystem_service import FileSystemService
-from backend.app.services.nas_path_service import NASPathService
+from backend.app.services.nas_index_service import NASIndexService
+from backend.app.services.synology_service import SynologyService
 from backend.app.services.user_service import UserService
 
 # 싱글톤 인스턴스
 _vectorstore: VectorStore | None = None
 _chat_service: ChatService | None = None
 _document_service: DocumentService | None = None
-_nas_path_service: NASPathService | None = None
-_filesystem_service: FileSystemService | None = None
+_synology_service: SynologyService | None = None
+_nas_index_service: NASIndexService | None = None
 _user_service: UserService | None = None
 
 
@@ -27,10 +27,20 @@ def get_vectorstore() -> VectorStore:
     return _vectorstore
 
 
+def get_nas_index_service() -> NASIndexService:
+    global _nas_index_service
+    if _nas_index_service is None:
+        _nas_index_service = NASIndexService(synology=get_synology_service())
+    return _nas_index_service
+
+
 def get_chat_service() -> ChatService:
     global _chat_service
     if _chat_service is None:
-        _chat_service = ChatService(vectorstore=get_vectorstore())
+        _chat_service = ChatService(
+            vectorstore=get_vectorstore(),
+            nas_index=get_nas_index_service(),
+        )
     return _chat_service
 
 
@@ -41,21 +51,11 @@ def get_document_service() -> DocumentService:
     return _document_service
 
 
-def get_nas_path_service() -> NASPathService:
-    global _nas_path_service
-    if _nas_path_service is None:
-        _nas_path_service = NASPathService(vectorstore=get_vectorstore())
-    return _nas_path_service
-
-
-def get_filesystem_service() -> FileSystemService:
-    global _filesystem_service
-    if _filesystem_service is None:
-        _filesystem_service = FileSystemService(
-            doc_service=get_document_service(),
-            nas_service=get_nas_path_service(),
-        )
-    return _filesystem_service
+def get_synology_service() -> SynologyService:
+    global _synology_service
+    if _synology_service is None:
+        _synology_service = SynologyService()
+    return _synology_service
 
 
 def get_user_service() -> UserService:

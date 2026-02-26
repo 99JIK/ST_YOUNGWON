@@ -1,11 +1,13 @@
-# ST영원 스마트 오피스 설정
+# ST영원 스마트 오피스 설정 레퍼런스
+# 실제 설정은 .env 파일에서 관리됩니다.
+# 이 파일은 전체 설정 구조를 파악하기 위한 참조용입니다.
 
 app:
   name: "ST영원 스마트 오피스"
   version: "1.0.0"
 
 llm:
-  default_provider: "openai"
+  default_provider: "ollama"  # openai, claude, gemini, ollama
   openai:
     model: "gpt-4o-mini"
     temperature: 0.3
@@ -14,14 +16,22 @@ llm:
     model: "claude-3-5-haiku-20241022"
     temperature: 0.3
     max_tokens: 1024
+  gemini:
+    model: "gemini-2.0-flash"
+    temperature: 0.3
+    max_tokens: 1024
   ollama:
+    base_url: "http://localhost:11434"
     model: "gemma3:4b"
     temperature: 0.3
     max_tokens: 1024
 
 embedding:
-  provider: "openai"
-  model: "text-embedding-3-small"
+  provider: "ollama"  # openai, ollama
+  openai:
+    model: "text-embedding-3-small"
+  ollama:
+    model: "nomic-embed-text"
 
 rag:
   chunk_size: 800
@@ -29,5 +39,18 @@ rag:
   top_k: 5
   similarity_threshold: 0.3
 
-nas:
-  server_name: "NAS_SERVER"
+upload:
+  max_size_mb: 200
+
+synology:
+  url: ""
+  username: ""
+  password: ""
+  verify_ssl: false
+
+admin:
+  password: "변경 필수"
+  secret_key: "변경 필수"
+
+logging:
+  level: "INFO"  # DEBUG, INFO, WARNING, ERROR

@@ -30,10 +30,8 @@ class Settings(BaseSettings):
     documents_dir: Path = _resolve_data_path("DOCUMENTS_DIR", "data/documents")
     extracted_dir: Path = _resolve_data_path("EXTRACTED_DIR", "data/extracted")
     chromadb_dir: Path = _resolve_data_path("CHROMADB_DIR", "data/chromadb")
-    nas_files_dir: Path = _resolve_data_path("NAS_FILES_DIR", "data/nas_files")
-    files_dir: Path = _resolve_data_path("FILES_DIR", "data/files")
-    nas_paths_file: Path = _resolve_data_path(
-        "NAS_PATHS_FILE", "data/nas_paths/path_index.json"
+    base_dirs_file: Path = _resolve_data_path(
+        "BASE_DIRS_FILE", "data/nas/base_dirs.json"
     )
 
     # LLM
@@ -67,8 +65,12 @@ class Settings(BaseSettings):
     admin_password: str = "admin1234"
     secret_key: str = "change-this-secret-key-in-production"
 
-    # NAS
-    nas_server_name: str = "NAS_SERVER"
+    # Synology NAS
+    synology_url: str = ""
+    synology_username: str = ""
+    synology_password: str = ""
+    synology_verify_ssl: bool = False
+    synology_session_name: str = "STYoungwon"
 
     # Logging
     log_level: str = "INFO"

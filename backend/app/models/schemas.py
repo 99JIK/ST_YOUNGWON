@@ -58,82 +58,50 @@ class DocumentUploadResponse(BaseModel):
     message: str
 
 
-# === NAS Paths ===
+# === Synology NAS ===
 
 
-class NASPathEntry(BaseModel):
+class BaseDirectory(BaseModel):
+    """관리자가 등록한 NAS 기본 디렉토리."""
     id: str = ""
+    path: str  # 예: "/인사팀"
+    label: str  # 표시 이름
+    description: str = ""
+    created_at: str = ""
+
+
+class BaseDirectoryRequest(BaseModel):
+    """기본 디렉토리 추가 요청."""
+    path: str
+    label: str
+    description: str = ""
+
+
+class NASItem(BaseModel):
+    """NAS 파일/폴더 항목."""
     name: str
     path: str
-    category: str = ""
-    description: str = ""
-    tags: list[str] = []
+    is_dir: bool
+    size: int = 0
+    modified_time: str = ""
+    extension: str = ""
 
 
-class NASPathSearchResult(BaseModel):
-    entries: list[NASPathEntry]
-    total_count: int
-
-
-class NASFileInfo(BaseModel):
-    id: str
-    filename: str
-    uploaded_at: str
-    total_chunks: int
-    status: str  # "indexed", "stored", "processing", "error"
-    file_size: int = 0
-    category: str = ""
-
-
-class NASFileUploadResponse(BaseModel):
-    id: str
-    filename: str
-    total_chunks: int
-    status: str
-    message: str
-
-
-class NASFileListResponse(BaseModel):
-    files: list[NASFileInfo]
-    total_count: int
-
-
-# === File Browser ===
-
-
-class FolderItem(BaseModel):
-    """파일 브라우저 항목 (파일 또는 폴더)."""
-    id: str
-    name: str
-    type: str  # "file" | "folder"
-    folder_path: str  # 부모 경로, "/" 또는 "/인사팀/규정"
-    file_type: str = ""  # "document" | "nas_file" | ""
-    file_size: int = 0
-    status: str = ""
-    uploaded_at: str = ""
-    total_chunks: int = 0
-    category: str = ""
-
-
-class FolderListResponse(BaseModel):
-    """폴더 내용 조회 응답."""
+class NASDirectoryListing(BaseModel):
+    """디렉토리 내용 조회 응답."""
     current_path: str
-    parent_path: Optional[str]
-    breadcrumbs: list[dict]
-    folders: list[FolderItem]
-    files: list[FolderItem]
+    parent_path: Optional[str] = None
+    breadcrumbs: list[dict] = []
+    items: list[NASItem] = []
+    total: int = 0
+    offset: int = 0
 
 
-class CreateFolderRequest(BaseModel):
-    name: str
-    parent_path: str = "/"
-
-
-class MoveItemRequest(BaseModel):
-    item_id: str
-    item_type: str  # "file" | "folder"
-    source_type: str = ""  # "document" | "nas_file" | "folder"
-    target_path: str
+class NASSearchResponse(BaseModel):
+    """NAS 파일 검색 응답."""
+    query: str
+    results: list[NASItem] = []
+    total_count: int = 0
 
 
 # === Admin ===
