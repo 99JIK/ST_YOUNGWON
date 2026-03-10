@@ -150,6 +150,49 @@ async def auth_logout(response: Response):
     return {"success": True}
 
 
+@app.put("/api/auth/change-password")
+async def change_password(request: Request):
+    """로그인한 사용자가 자신의 비밀번호를 변경합니다."""
+    from backend.app.dependencies import get_current_user
+
+    try:
+        user = await get_current_user(request, request.cookies.get("auth_token"))
+    except Exception:
+        return Response(status_code=401)
+
+    body = await request.json()
+    current_password = body.get("current_password", "")
+    new_password = body.get("new_password", "")
+
+    if not current_password or not new_password:
+        return Response(
+            status_code=400,
+            content='{"detail":"현재 비밀번호와 새 비밀번호를 모두 입력하세요."}',
+            media_type="application/json",
+        )
+
+    user_service = get_user_service()
+    # 현재 비밀번호 확인
+    auth_result = user_service.authenticate(user["username"], current_password)
+    if not auth_result:
+        return Response(
+            status_code=400,
+            content='{"detail":"현재 비밀번호가 올바르지 않습니다."}',
+            media_type="application/json",
+        )
+
+    # 비밀번호 변경
+    ok = user_service.reset_password(auth_result["id"], new_password)
+    if not ok:
+        return Response(
+            status_code=500,
+            content='{"detail":"비밀번호 변경에 실패했습니다."}',
+            media_type="application/json",
+        )
+
+    return {"success": True, "message": "비밀번호가 변경되었습니다."}
+
+
 @app.get("/api/auth/me")
 async def auth_me(request: Request):
     """현재 유저 정보를 반환합니다."""

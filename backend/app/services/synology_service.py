@@ -92,6 +92,13 @@ class SynologyService:
         if not self._sid:
             await self.login()
 
+    async def _reauth_and_retry(self) -> None:
+        """세션 만료 시 재로그인합니다."""
+        logger.info("NAS 세션 만료 — 재인증 시도")
+        self._sid = ""
+        self._synotoken = ""
+        await self.login()
+
     # ──────────────────────────────────────────
     # 기본 디렉토리 관리 (로컬 JSON)
     # ──────────────────────────────────────────
@@ -191,24 +198,17 @@ class SynologyService:
             )
 
         await self._ensure_session()
-        params = {
-            "api": "SYNO.FileStation.List",
-            "version": "2",
-            "method": "list",
-            "folder_path": folder_path,
-            "offset": str(offset),
-            "limit": str(limit),
-            "sort_by": sort_by,
-            "sort_direction": sort_direction,
-            "additional": '["size","time","type"]',
-            "_sid": self._sid,
-        }
-        data = await self._raw_get("/webapi/entry.cgi", params)
+        data = await self._list_dir_request(folder_path, offset, limit, sort_by, sort_direction)
         if not data.get("success"):
             code = data.get("error", {}).get("code", "unknown")
             if code == 408:
-                raise SynologyAuthError("세션 만료")
-            raise SynologyAPIError(f"디렉토리 조회 실패 (에러 코드: {code})")
+                # 세션 만료 → 재인증 후 재시도
+                await self._reauth_and_retry()
+                data = await self._list_dir_request(folder_path, offset, limit, sort_by, sort_direction)
+                if not data.get("success"):
+                    raise SynologyAPIError(f"디렉토리 조회 실패 (재인증 후에도 실패)")
+            else:
+                raise SynologyAPIError(f"디렉토리 조회 실패 (에러 코드: {code})")
 
         files_data = data["data"]
         items = []
@@ -523,6 +523,24 @@ class SynologyService:
     # ──────────────────────────────────────────
     # 내부 헬퍼
     # ──────────────────────────────────────────
+
+    async def _list_dir_request(
+        self, folder_path: str, offset: int, limit: int, sort_by: str, sort_direction: str
+    ) -> dict:
+        """디렉토리 목록 API 요청을 보냅니다."""
+        params = {
+            "api": "SYNO.FileStation.List",
+            "version": "2",
+            "method": "list",
+            "folder_path": folder_path,
+            "offset": str(offset),
+            "limit": str(limit),
+            "sort_by": sort_by,
+            "sort_direction": sort_direction,
+            "additional": '["size","time","type"]',
+            "_sid": self._sid,
+        }
+        return await self._raw_get("/webapi/entry.cgi", params)
 
     async def _validate_path(self, path: str) -> bool:
         """NAS 경로가 실제 존재하는지 확인합니다."""

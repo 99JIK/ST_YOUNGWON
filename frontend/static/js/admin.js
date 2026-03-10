@@ -461,7 +461,7 @@ function renderUserPage() {
             ? '<span class="status-badge stored">관리자</span>'
             : '<span class="status-badge indexed">사용자</span>';
         const actions = u.username === 'admin'
-            ? '<span class="default-account-label">기본 계정</span>'
+            ? `<button class="btn btn-secondary btn-sm" onclick="showChangeMyPassword()">비밀번호 변경</button>`
             : `<button class="btn btn-secondary btn-sm" onclick="showResetPassword(${u.id}, '${escapeAttr(u.display_name || u.username)}')">비밀번호</button>
                <button class="btn btn-danger btn-sm" onclick="deleteUser(${u.id}, '${escapeAttr(u.username)}')">삭제</button>`;
 
@@ -640,5 +640,59 @@ async function deleteUser(userId, username) {
         }
     } catch (error) {
         alert('오류가 발생했습니다.');
+    }
+}
+
+// === 내 비밀번호 변경 ===
+
+function showChangeMyPassword() {
+    document.getElementById('currentPassword').value = '';
+    document.getElementById('newMyPassword').value = '';
+    document.getElementById('confirmMyPassword').value = '';
+    const alertDiv = document.getElementById('changeMyPwAlert');
+    if (alertDiv) alertDiv.style.display = 'none';
+    showModal('changeMyPasswordModal');
+}
+
+async function confirmChangeMyPassword() {
+    const currentPassword = document.getElementById('currentPassword').value;
+    const newPassword = document.getElementById('newMyPassword').value;
+    const confirmPassword = document.getElementById('confirmMyPassword').value;
+    const alertDiv = document.getElementById('changeMyPwAlert');
+
+    if (!currentPassword || !newPassword) {
+        alertDiv.className = 'alert alert-error';
+        alertDiv.textContent = '현재 비밀번호와 새 비밀번호를 모두 입력하세요.';
+        alertDiv.style.display = 'block';
+        return;
+    }
+
+    if (newPassword !== confirmPassword) {
+        alertDiv.className = 'alert alert-error';
+        alertDiv.textContent = '새 비밀번호가 일치하지 않습니다.';
+        alertDiv.style.display = 'block';
+        return;
+    }
+
+    try {
+        const response = await fetch('/api/auth/change-password', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ current_password: currentPassword, new_password: newPassword }),
+        });
+
+        if (response.ok) {
+            closeModal('changeMyPasswordModal');
+            alert('비밀번호가 변경되었습니다.');
+        } else {
+            const data = await response.json();
+            alertDiv.className = 'alert alert-error';
+            alertDiv.textContent = data.detail || '비밀번호 변경에 실패했습니다.';
+            alertDiv.style.display = 'block';
+        }
+    } catch (error) {
+        alertDiv.className = 'alert alert-error';
+        alertDiv.textContent = '오류가 발생했습니다.';
+        alertDiv.style.display = 'block';
     }
 }
