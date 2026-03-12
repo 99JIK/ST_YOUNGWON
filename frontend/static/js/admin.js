@@ -64,6 +64,21 @@ async function loadStatus() {
             nasStatusEl.style.color = 'var(--text-secondary)';
         }
         document.getElementById('baseDirCount').textContent = data.nas_base_dir_count || 0;
+
+        // NAS 인덱스 상태
+        const indexCountEl = document.getElementById('indexCount');
+        if (indexCountEl) {
+            indexCountEl.textContent = data.nas_index_count || 0;
+            if (data.nas_index_errors > 0) {
+                indexCountEl.style.color = 'var(--warning, #f59e0b)';
+            }
+        }
+        const indexScanEl = document.getElementById('indexLastScan');
+        if (indexScanEl) {
+            indexScanEl.textContent = data.nas_index_last_scan
+                ? new Date(data.nas_index_last_scan).toLocaleString('ko-KR')
+                : '미실행';
+        }
     } catch (e) {
         console.error('상태 로드 실패:', e);
     }

@@ -33,4 +33,5 @@ async def health_check(
         "nas_base_dir_count": len(synology.list_base_dirs()),
         "nas_index_count": nas_index.total_indexed,
         "nas_index_last_scan": nas_index.last_scan_time.isoformat() if nas_index.last_scan_time else None,
+        "nas_index_errors": len(nas_index.scan_errors),
     }

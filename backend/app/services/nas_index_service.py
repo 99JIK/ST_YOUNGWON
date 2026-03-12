@@ -10,6 +10,12 @@ from backend.app.services.synology_service import SynologyService
 
 logger = logging.getLogger(__name__)
 
+# 폴더당 최대 파일 수 (페이지네이션으로 전부 가져옴)
+_PAGE_SIZE = 2000
+# 스캔 시작 실패 시 재시도 횟수
+_INITIAL_RETRY = 2
+_INITIAL_RETRY_DELAY = 10  # 초
+
 
 class NASIndexService:
     """NAS 파일 인덱스 — 주기적 스캔으로 파일 목록을 메모리에 캐시합니다.
@@ -25,6 +31,7 @@ class NASIndexService:
         self._last_scan: Optional[datetime] = None
         self._scanning: bool = False
         self._task: Optional[asyncio.Task] = None
+        self._scan_errors: list[str] = []
 
     # ──────────────────────────────────────────
     # 속성
@@ -42,6 +49,10 @@ class NASIndexService:
     def is_scanning(self) -> bool:
         return self._scanning
 
+    @property
+    def scan_errors(self) -> list[str]:
+        return self._scan_errors
+
     # ──────────────────────────────────────────
     # 스캔
     # ──────────────────────────────────────────
@@ -53,25 +64,41 @@ class NASIndexService:
             return len(self._index)
 
         self._scanning = True
+        self._scan_errors = []
         try:
             await self._synology._ensure_session()
             base_dirs = self._synology.list_base_dirs()
             if not base_dirs:
                 logger.info("등록된 기본 디렉토리가 없어 스캔 건너뜁니다.")
-                self._index = []
                 self._last_scan = datetime.now()
-                return 0
+                return len(self._index)
 
             new_index: list[dict] = []
             for bd in base_dirs:
+                logger.info(f"스캔 시작: {bd['path']}")
                 await self._scan_recursive(bd["path"], new_index)
 
-            self._index = new_index
+            # 새 인덱스가 비어있고 이전 인덱스가 있으면 유지 (스캔 실패 보호)
+            if not new_index and self._index and self._scan_errors:
+                logger.warning(
+                    f"스캔 결과가 비어있고 에러 {len(self._scan_errors)}건 발생 — 이전 인덱스 유지 ({len(self._index)}개)"
+                )
+            else:
+                self._index = new_index
+                logger.info(f"NAS 파일 인덱스 완료: {len(self._index)}개 항목")
+
+            if self._scan_errors:
+                logger.warning(f"스캔 중 {len(self._scan_errors)}개 폴더에서 에러 발생")
+                for err in self._scan_errors[:5]:
+                    logger.warning(f"  - {err}")
+
             self._last_scan = datetime.now()
-            logger.info(f"NAS 파일 인덱스 완료: {len(self._index)}개 항목")
             return len(self._index)
         except Exception as e:
             logger.error(f"NAS 인덱스 스캔 실패: {e}")
+            # 이전 인덱스 유지
+            if self._index:
+                logger.info(f"이전 인덱스 유지: {len(self._index)}개 항목")
             return len(self._index)
         finally:
             self._scanning = False
@@ -79,41 +106,58 @@ class NASIndexService:
     async def _scan_recursive(
         self, folder_path: str, accumulator: list[dict]
     ) -> None:
-        """폴더를 재귀적으로 스캔합니다."""
-        params = {
-            "api": "SYNO.FileStation.List",
-            "version": "2",
-            "method": "list",
-            "folder_path": folder_path,
-            "limit": "2000",
-            "additional": '["size","time"]',
-            "_sid": self._synology._sid,
-        }
-        try:
-            data = await self._synology._raw_get("/webapi/entry.cgi", params)
-            if not data.get("success"):
+        """폴더를 재귀적으로 스캔합니다. 페이지네이션으로 전체 파일을 가져옵니다."""
+        offset = 0
+        while True:
+            params = {
+                "api": "SYNO.FileStation.List",
+                "version": "2",
+                "method": "list",
+                "folder_path": folder_path,
+                "offset": str(offset),
+                "limit": str(_PAGE_SIZE),
+                "additional": '["size","time"]',
+                "_sid": self._synology._sid,
+            }
+            try:
+                data = await self._synology._raw_get("/webapi/entry.cgi", params)
+                if not data.get("success"):
+                    code = data.get("error", {}).get("code", "unknown")
+                    self._scan_errors.append(f"{folder_path} (에러 코드: {code})")
+                    logger.warning(f"스캔 실패 ({folder_path}): 에러 코드 {code}")
+                    return
+
+                files = data["data"].get("files", [])
+                total = data["data"].get("total", 0)
+
+                for f in files:
+                    additional = f.get("additional", {})
+                    entry = {
+                        "name": f["name"],
+                        "path": f["path"],
+                        "is_dir": f["isdir"],
+                        "size": additional.get("size", 0),
+                        "mtime": additional.get("time", {}).get("mtime", 0),
+                        "extension": (
+                            Path(f["name"]).suffix.lstrip(".").lower()
+                            if not f["isdir"]
+                            else ""
+                        ),
+                    }
+                    accumulator.append(entry)
+
+                    if f["isdir"]:
+                        await self._scan_recursive(f["path"], accumulator)
+
+                # 다음 페이지가 있으면 계속
+                offset += len(files)
+                if offset >= total or not files:
+                    break
+
+            except Exception as e:
+                self._scan_errors.append(f"{folder_path}: {e}")
+                logger.warning(f"스캔 실패 ({folder_path}): {e}")
                 return
-
-            for f in data["data"].get("files", []):
-                additional = f.get("additional", {})
-                entry = {
-                    "name": f["name"],
-                    "path": f["path"],
-                    "is_dir": f["isdir"],
-                    "size": additional.get("size", 0),
-                    "mtime": additional.get("time", {}).get("mtime", 0),
-                    "extension": (
-                        Path(f["name"]).suffix.lstrip(".").lower()
-                        if not f["isdir"]
-                        else ""
-                    ),
-                }
-                accumulator.append(entry)
-
-                if f["isdir"]:
-                    await self._scan_recursive(f["path"], accumulator)
-        except Exception as e:
-            logger.warning(f"스캔 실패 ({folder_path}): {e}")
 
     # ──────────────────────────────────────────
     # 검색
@@ -159,6 +203,7 @@ class NASIndexService:
             "total_indexed": self.total_indexed,
             "last_scan": self._last_scan.isoformat() if self._last_scan else None,
             "is_scanning": self._scanning,
+            "scan_errors": len(self._scan_errors),
         }
 
     # ──────────────────────────────────────────
@@ -169,8 +214,17 @@ class NASIndexService:
         """주기적 스캔을 백그라운드 태스크로 시작합니다."""
 
         async def _periodic() -> None:
-            # 시작 직후 첫 스캔
-            await self.scan_all()
+            # 시작 직후 첫 스캔 (실패 시 재시도)
+            for attempt in range(_INITIAL_RETRY + 1):
+                count = await self.scan_all()
+                if count > 0 or not self._scan_errors:
+                    break
+                if attempt < _INITIAL_RETRY:
+                    logger.info(
+                        f"첫 스캔 실패 — {_INITIAL_RETRY_DELAY}초 후 재시도 ({attempt + 1}/{_INITIAL_RETRY})"
+                    )
+                    await asyncio.sleep(_INITIAL_RETRY_DELAY)
+
             while True:
                 await asyncio.sleep(interval_seconds)
                 await self.scan_all()

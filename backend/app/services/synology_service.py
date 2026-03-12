@@ -201,13 +201,16 @@ class SynologyService:
         data = await self._list_dir_request(folder_path, offset, limit, sort_by, sort_direction)
         if not data.get("success"):
             code = data.get("error", {}).get("code", "unknown")
-            if code == 408:
-                # 세션 만료 → 재인증 후 재시도
+            if code in (105, 106, 107, 408):
+                # 세션 만료/인증 오류 → 재인증 후 재시도
                 await self._reauth_and_retry()
                 data = await self._list_dir_request(folder_path, offset, limit, sort_by, sort_direction)
                 if not data.get("success"):
+                    retry_code = data.get("error", {}).get("code", "unknown")
+                    logger.error(f"디렉토리 조회 실패 (재인증 후): {folder_path}, 에러 코드: {retry_code}")
                     raise SynologyAPIError(f"디렉토리 조회 실패 (재인증 후에도 실패)")
             else:
+                logger.error(f"디렉토리 조회 실패: {folder_path}, 에러 코드: {code}")
                 raise SynologyAPIError(f"디렉토리 조회 실패 (에러 코드: {code})")
 
         files_data = data["data"]
