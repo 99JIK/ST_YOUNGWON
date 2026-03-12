@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from urllib.parse import quote
+
 from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile, File, Form
 from fastapi.responses import Response
 
@@ -141,11 +143,14 @@ async def download_file(
     """NAS 파일을 다운로드합니다. (관리자 전용)"""
     try:
         content, filename = await svc.download_file(path)
+        # RFC 5987: 한글 등 비ASCII 파일명 지원
+        encoded = quote(filename)
+        cd = f"attachment; filename*=UTF-8''{encoded}"
         return Response(
             content=content,
             media_type="application/octet-stream",
             headers={
-                "Content-Disposition": f'attachment; filename="{filename}"',
+                "Content-Disposition": cd,
             },
         )
     except SynologyAuthError:

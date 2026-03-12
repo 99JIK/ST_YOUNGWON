@@ -366,6 +366,20 @@ class SynologyService:
             raise SynologyAPIError("접근 권한이 없는 경로입니다.")
 
         await self._ensure_session()
+
+        for attempt in range(2):
+            content, filename, is_error = await self._download_request(file_path)
+            if not is_error:
+                return content, filename
+            # 세션 만료 → 재인증 후 재시도
+            if attempt == 0:
+                logger.info("다운로드 세션 만료 — 재인증 시도")
+                await self._reauth_and_retry()
+
+        raise SynologyAPIError("파일 다운로드 실패 (재인증 후에도 실패)")
+
+    async def _download_request(self, file_path: str) -> tuple[bytes, str, bool]:
+        """다운로드 요청을 보내고 (바이트, 파일명, 에러여부) 튜플을 반환합니다."""
         params = {
             "api": "SYNO.FileStation.Download",
             "version": "2",
@@ -387,13 +401,25 @@ class SynologyService:
             )
             resp.raise_for_status()
 
+            # NAS가 세션 만료 시 JSON 에러를 반환할 수 있음
+            content_type = resp.headers.get("content-type", "")
+            if "application/json" in content_type:
+                try:
+                    data = resp.json()
+                    if not data.get("success"):
+                        code = data.get("error", {}).get("code", "unknown")
+                        logger.warning(f"다운로드 실패 ({file_path}): 에러 코드 {code}")
+                        return b"", "", True
+                except Exception:
+                    pass
+
             filename = Path(file_path).name
             # Content-Disposition 헤더에서 파일명 추출 시도
             cd = resp.headers.get("content-disposition", "")
             if "filename=" in cd:
                 filename = cd.split("filename=")[-1].strip('"')
 
-            return resp.content, filename
+            return resp.content, filename, False
 
     # ──────────────────────────────────────────
     # 파일 관리 (관리자용)
