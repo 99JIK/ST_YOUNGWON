@@ -228,14 +228,27 @@ async function searchNasFiles() {
 }
 
 // === 다운로드 ===
-function downloadFile(path) {
-    const url = `/api/nas/download?path=${encodeURIComponent(path)}`;
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = '';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
+async function downloadFile(path) {
+    try {
+        const resp = await fetch(`/api/nas/download?path=${encodeURIComponent(path)}`);
+        if (!resp.ok) {
+            const err = await resp.json().catch(() => ({}));
+            alert(err.detail || '다운로드에 실패했습니다.');
+            return;
+        }
+        const blob = await resp.blob();
+        const filename = path.split('/').pop() || 'download';
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    } catch (e) {
+        alert('다운로드 중 오류가 발생했습니다.');
+    }
 }
 
 // === 컨텍스트 메뉴 ===
