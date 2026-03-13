@@ -1,0 +1,35 @@
+# Git
+.git
+.gitignore
+
+# Claude / IDE
+.claude
+CLAUDE.md
+.vscode
+.idea
+
+# 로컬 환경
+venv
+.env
+__pycache__
+*.pyc
+
+# 데이터 (Docker 볼륨으로 마운트)
+data/
+
+# 문서 / 테스트
+DOCS/
+TECHNICAL_DOCUMENTATION.md
+TEST_DIRECTORY/
+*.pdf
+
+# Docker 자체
+Dockerfile
+docker-compose*.yml
+.dockerignore
+
+# 기타
+Makefile
+*.md
+!backend/**/*.md
+!frontend/**/*.md
