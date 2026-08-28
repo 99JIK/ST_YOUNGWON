@@ -1,0 +1,299 @@
+{
+  "server_url": "http://localhost:8000",
+  "executed_at": "2026-03-16T04:10:50.865696",
+  "total": 36,
+  "passed": 36,
+  "failed": 0,
+  "skipped": 0,
+  "total_duration_ms": 32005.1,
+  "results": [
+    {
+      "category": "헬스체크",
+      "name": "상태 코드 200",
+      "passed": true,
+      "status_code": 200,
+      "response_ms": 2309.3044999986887,
+      "detail": ""
+    },
+    {
+      "category": "헬스체크",
+      "name": "status=ok",
+      "passed": true,
+      "status_code": null,
+      "response_ms": 2309.3044999986887,
+      "detail": "status=ok"
+    },
+    {
+      "category": "헬스체크",
+      "name": "응답 시간 < 3초",
+      "passed": true,
+      "status_code": null,
+      "response_ms": 2309.3044999986887,
+      "detail": "2309ms"
+    },
+    {
+      "category": "헬스체크",
+      "name": "llm_provider 존재",
+      "passed": true,
+      "status_code": null,
+      "response_ms": 0.0,
+      "detail": "ollama"
+    },
+    {
+      "category": "인증",
+      "name": "잘못된 비밀번호 거부",
+      "passed": true,
+      "status_code": 200,
+      "response_ms": 179.7385000390932,
+      "detail": ""
+    },
+    {
+      "category": "인증",
+      "name": "정상 로그인",
+      "passed": true,
+      "status_code": 200,
+      "response_ms": 187.0338000007905,
+      "detail": ""
+    },
+    {
+      "category": "인증",
+      "name": "내 정보 조회 (/auth/me)",
+      "passed": "admin",
+      "status_code": 200,
+      "response_ms": 4.014700010884553,
+      "detail": ""
+    },
+    {
+      "category": "인증",
+      "name": "미인증 접근 → 401",
+      "passed": true,
+      "status_code": 401,
+      "response_ms": 0.0,
+      "detail": ""
+    },
+    {
+      "category": "챗봇",
+      "name": "인사 응답",
+      "passed": true,
+      "status_code": 200,
+      "response_ms": 807.4913999880664,
+      "detail": "안녕하세요! ST영원 스마트 오피스입니다. 무엇을 도와드릴까요? 😊\n"
+    },
+    {
+      "category": "챗봇",
+      "name": "규정 질의 응답",
+      "passed": true,
+      "status_code": 200,
+      "response_ms": 5427.513099974021,
+      "detail": "연차 사용 규정에 대해 안내해 드립니다.\n\n1.  **연차유급휴가 부여 기준**: 회사는 년간 소정근로일수의 8할 이상 출근하는 직원에게는 15"
+    },
+    {
+      "category": "챗봇",
+      "name": "NAS 파일 질의 응답",
+      "passed": true,
+      "status_code": 200,
+      "response_ms": 1269.8702999623492,
+      "detail": "죄송합니다. NAS에서 인사팀 폴더에 해당하는 파일이나 폴더를 찾지 못했습니다. 다른 검색어를 사용해 보시거나, 좌측 ‘NAS 탐색’ 메뉴에서 "
+    },
+    {
+      "category": "챗봇",
+      "name": "스트리밍 첫 토큰 수신",
+      "passed": true,
+      "status_code": 200,
+      "response_ms": 2738.614600035362,
+      "detail": "첫 청크: data: {\"token\": \"1\"}"
+    },
+    {
+      "category": "챗봇",
+      "name": "일반 질의 응답 시간 < 30초",
+      "passed": true,
+      "status_code": 200,
+      "response_ms": 3414.6659999969415,
+      "detail": ""
+    },
+    {
+      "category": "챗봇",
+      "name": "빈 메시지 처리",
+      "passed": true,
+      "status_code": 200,
+      "response_ms": 826.9786000018939,
+      "detail": "빈 메시지 요청 정상 처리"
+    },
+    {
+      "category": "문서관리",
+      "name": "문서 목록 조회",
+      "passed": true,
+      "status_code": 200,
+      "response_ms": 3.684299997985363,
+      "detail": ""
+    },
+    {
+      "category": "문서관리",
+      "name": "TXT 파일 업로드",
+      "passed": true,
+      "status_code": 200,
+      "response_ms": 454.35810001799837,
+      "detail": "문서가 성공적으로 업로드되고 인덱싱되었습니다. (1개 청크)"
+    },
+    {
+      "category": "문서관리",
+      "name": "업로드 진행률 조회",
+      "passed": true,
+      "status_code": 200,
+      "response_ms": 2.165399957448244,
+      "detail": ""
+    },
+    {
+      "category": "문서관리",
+      "name": "문서 수 확인",
+      "passed": true,
+      "status_code": null,
+      "response_ms": 3.346499986946583,
+      "detail": "total_count=5"
+    },
+    {
+      "category": "문서관리",
+      "name": "미지원 형식 거부 (.exe)",
+      "passed": true,
+      "status_code": 400,
+      "response_ms": 2.472100022714585,
+      "detail": ""
+    },
+    {
+      "category": "문서관리",
+      "name": "문서 삭제",
+      "passed": true,
+      "status_code": 200,
+      "response_ms": 134.60789999226108,
+      "detail": ""
+    },
+    {
+      "category": "사용자관리",
+      "name": "사용자 목록 조회",
+      "passed": true,
+      "status_code": 200,
+      "response_ms": 3.542900027241558,
+      "detail": ""
+    },
+    {
+      "category": "사용자관리",
+      "name": "사용자 생성",
+      "passed": true,
+      "status_code": 200,
+      "response_ms": 185.43919996591285,
+      "detail": ""
+    },
+    {
+      "category": "사용자관리",
+      "name": "비밀번호 변경",
+      "passed": true,
+      "status_code": 200,
+      "response_ms": 182.3543999926187,
+      "detail": ""
+    },
+    {
+      "category": "사용자관리",
+      "name": "사용자 삭제",
+      "passed": true,
+      "status_code": 200,
+      "response_ms": 6.264400028157979,
+      "detail": ""
+    },
+    {
+      "category": "NAS연동",
+      "name": "NAS 연결 상태 조회",
+      "passed": true,
+      "status_code": 200,
+      "response_ms": 3.2301999744959176,
+      "detail": "connected=True"
+    },
+    {
+      "category": "NAS연동",
+      "name": "기본 디렉토리 목록",
+      "passed": true,
+      "status_code": 200,
+      "response_ms": 2.314699988346547,
+      "detail": "1개 등록"
+    },
+    {
+      "category": "NAS연동",
+      "name": "디렉토리 탐색",
+      "passed": true,
+      "status_code": 200,
+      "response_ms": 240.20280002150685,
+      "detail": "path=/homes, items=33"
+    },
+    {
+      "category": "NAS연동",
+      "name": "탐색 응답 시간 < 5초",
+      "passed": true,
+      "status_code": null,
+      "response_ms": 240.20280002150685,
+      "detail": ""
+    },
+    {
+      "category": "NAS연동",
+      "name": "파일 검색",
+      "passed": true,
+      "status_code": 200,
+      "response_ms": 2662.465200002771,
+      "detail": "results=0"
+    },
+    {
+      "category": "NAS연동",
+      "name": "존재하지 않는 경로 처리",
+      "passed": true,
+      "status_code": 400,
+      "response_ms": 3.24480002745986,
+      "detail": ""
+    },
+    {
+      "category": "페이지",
+      "name": "로그인 페이지 렌더링",
+      "passed": true,
+      "status_code": 200,
+      "response_ms": 6.853200029581785,
+      "detail": ""
+    },
+    {
+      "category": "페이지",
+      "name": "메인(챗) 페이지 렌더링",
+      "passed": true,
+      "status_code": 200,
+      "response_ms": 4.057299986016005,
+      "detail": ""
+    },
+    {
+      "category": "페이지",
+      "name": "NAS 탐색 페이지 렌더링",
+      "passed": true,
+      "status_code": 200,
+      "response_ms": 4.9708999576978385,
+      "detail": ""
+    },
+    {
+      "category": "페이지",
+      "name": "관리자 페이지 렌더링",
+      "passed": true,
+      "status_code": 200,
+      "response_ms": 5.501100036781281,
+      "detail": ""
+    },
+    {
+      "category": "성능",
+      "name": "헬스체크 평균 응답 (5회)",
+      "passed": true,
+      "status_code": null,
+      "response_ms": 27.342579991091043,
+      "detail": "min=25ms, max=30ms, avg=27ms"
+    },
+    {
+      "category": "성능",
+      "name": "챗봇 평균 응답 (3회)",
+      "passed": true,
+      "status_code": null,
+      "response_ms": 2916.237666659678,
+      "detail": "min=2629ms, max=3469ms, avg=2916ms"
+    }
+  ]
+}
